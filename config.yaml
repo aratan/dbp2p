@@ -1,0 +1,42 @@
+general:
+  data_dir: "./data"
+
+api:
+  enabled: true
+  port: 8080
+
+websocket:
+  enabled: true
+  port: 8081
+
+database:
+  backup:
+    auto_backup: true
+    interval: 3600
+    max_backups: 5
+
+network:
+  libp2p:
+    listen_addresses:
+      - "/ip4/0.0.0.0/tcp/9000"
+      - "/ip4/0.0.0.0/tcp/9001/ws"
+    bootstrap_peers: []
+  
+  mdns:
+    enabled: true
+    service_name: "dbp2p"
+    interval: 10
+  
+  dht:
+    enabled: true
+    mode: "client"
+    bootstrap_interval: 300
+
+auth:
+  jwt:
+    secret: "dbp2p_secret_key"
+    expiration: 86400
+  
+  default_admin:
+    username: "admin"
+    password: "admin123"

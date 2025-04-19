@@ -1,0 +1,88 @@
+[
+  {
+    "name": "admin",
+    "description": "Administrador con acceso completo",
+    "permissions": [
+      {
+        "resource": "*",
+        "actions": [
+          "*"
+        ]
+      }
+    ],
+    "is_system": true,
+    "created_at": "2025-04-14T17:16:31.792802764+02:00",
+    "updated_at": "2025-04-14T17:16:31.792802764+02:00"
+  },
+  {
+    "name": "reader",
+    "description": "Usuario con permisos de solo lectura",
+    "permissions": [
+      {
+        "resource": "*",
+        "actions": [
+          "read"
+        ]
+      }
+    ],
+    "is_system": true,
+    "created_at": "2025-04-14T17:16:31.792802764+02:00",
+    "updated_at": "2025-04-14T17:16:31.792802764+02:00"
+  },
+  {
+    "name": "writer",
+    "description": "Usuario con permisos de lectura y escritura",
+    "permissions": [
+      {
+        "resource": "*",
+        "actions": [
+          "read",
+          "write"
+        ]
+      }
+    ],
+    "is_system": true,
+    "created_at": "2025-04-14T17:16:31.792802764+02:00",
+    "updated_at": "2025-04-14T17:16:31.792802764+02:00"
+  },
+  {
+    "name": "user_manager",
+    "description": "Gestor de usuarios con permisos para administrar usuarios pero no datos",
+    "permissions": [
+      {
+        "resource": "users",
+        "actions": [
+          "read",
+          "write",
+          "delete"
+        ]
+      },
+      {
+        "resource": "roles",
+        "actions": [
+          "read"
+        ]
+      }
+    ],
+    "is_system": false,
+    "created_at": "2025-04-14T17:16:31.792802764+02:00",
+    "updated_at": "2025-04-14T17:16:31.792802764+02:00"
+  },
+  {
+    "name": "backup_manager",
+    "description": "Gestor de copias de seguridad con permisos para crear y restaurar backups",
+    "permissions": [
+      {
+        "resource": "backups",
+        "actions": [
+          "read",
+          "write",
+          "delete"
+        ]
+      }
+    ],
+    "is_system": false,
+    "created_at": "2025-04-14T17:16:31.792802764+02:00",
+    "updated_at": "2025-04-14T17:16:31.792802764+02:00"
+  }
+]

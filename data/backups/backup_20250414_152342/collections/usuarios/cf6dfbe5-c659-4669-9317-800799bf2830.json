@@ -1,0 +1,11 @@
+{
+  "id": "cf6dfbe5-c659-4669-9317-800799bf2830",
+  "collection": "usuarios",
+  "data": {
+    "edad": 100,
+    "email": "juan@yahoo.com",
+    "nombre": "juan"
+  },
+  "created_at": "2025-04-14T12:06:14.1639325+02:00",
+  "updated_at": "2025-04-14T12:34:36.2737707+02:00"
+}

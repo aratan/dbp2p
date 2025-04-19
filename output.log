@@ -1,0 +1,12 @@
+flag provided but not defined: -v
+Usage of ./dbp2p:
+  -api
+    	Habilitar API REST (anula la configuración) (default true)
+  -api-port int
+    	Puerto para la API REST (anula la configuración)
+  -config string
+    	Ruta al archivo de configuración (default "config.yaml")
+  -ws
+    	Habilitar WebSocket (anula la configuración) (default true)
+  -ws-port int
+    	Puerto para WebSocket (anula la configuración)

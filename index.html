@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBP2P - Cliente Web</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    body {
+      padding-top: 20px;
+      background-color: #f8f9fa;
+    }
+
+    .card {
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      font-weight: bold;
+      background-color: #f1f8ff;
+    }
+
+    .nav-tabs .nav-link.active {
+      font-weight: bold;
+      background-color: #f8f9fa;
+      border-bottom-color: #f8f9fa;
+    }
+
+    .form-control:focus,
+    .btn:focus {
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+    }
+
+    .code-editor {
+      font-family: monospace;
+      height: 200px;
+      resize: vertical;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      margin-right: 0.5rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .badge-live {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="mb-4">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="display-5">
+            <i class="bi bi-database"></i> DBP2P
+            <small class="text-muted fs-6">Base de Datos NoSQL Descentralizada P2P</small>
+          </h1>
+        </div>
+        <div class="col-md-4 text-end">
+          <div id="connection-status" class="badge bg-secondary">Desconectado</div>
+          <button id="logout-btn" class="btn btn-sm btn-outline-danger ms-2 hidden" title="Cerrar sesión">
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenedor de notificaciones -->
+    <div id="toast-container"></div>
+
+    <!-- Panel de login -->
+    <div id="login-panel" class="card">
+      <div class="card-header">Iniciar sesión</div>
+      <div class="card-body">
+        <form id="login-form">
+          <div class="mb-3">
+            <label for="server-url" class="form-label">URL del servidor</label>
+            <input type="text" class="form-control" id="server-url" value="http://localhost:8099" required>
+          </div>
+          <div class="mb-3">
+            <label for="ws-url" class="form-label">URL de WebSocket</label>
+            <input type="text" class="form-control" id="ws-url" value="ws://localhost:8100" required>
+          </div>
+          <div class="mb-3">
+            <label for="username" class="form-label">Usuario</label>
+            <input type="text" class="form-control" id="username" value="admin" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password" value="admin123" required>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <span id="login-spinner" class="spinner-border hidden" role="status" aria-hidden="true"></span>
+            Iniciar sesión
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Panel principal (oculto hasta login) -->
+    <div id="main-panel" class="hidden">
+      <!-- Barra de navegación superior -->
+      <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">DBP2P</a>
+          <button id="direct-access-btn" class="btn btn-outline-primary btn-sm ms-2">
+            <i class="bi bi-file-earmark-arrow-down"></i> Acceso directo a archivo
+          </button>
+
+          <!-- Navegación principal -->
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="nav nav-tabs me-auto mb-2 mb-lg-0" id="mainTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="collections-tab" data-bs-toggle="tab" data-bs-target="#collections"
+                  type="button" role="tab" aria-controls="collections" aria-selected="true">
+                  <i class="bi bi-collection"></i> Colecciones
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button"
+                  role="tab" aria-controls="users" aria-selected="false">
+                  <i class="bi bi-people"></i> Usuarios
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="backups-tab" data-bs-toggle="tab" data-bs-target="#backups" type="button"
+                  role="tab" aria-controls="backups" aria-selected="false">
+                  <i class="bi bi-archive"></i> Copias de seguridad
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="live-tab" data-bs-toggle="tab" data-bs-target="#live" type="button"
+                  role="tab" aria-controls="live" aria-selected="false">
+                  <i class="bi bi-broadcast"></i> Tiempo real
+                </button>
+              </li>
+            </ul>
+
+            <!-- Información de usuario y botón de cierre de sesión -->
+            <div class="d-flex align-items-center">
+              <span id="current-user-span" class="me-3"></span>
+              <button id="nav-logout-btn" class="btn btn-sm btn-danger" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i> Salir
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="tab-content" id="mainTabContent">
+        <!-- Pestaña de Colecciones -->
+        <div class="tab-pane fade show active" id="collections" role="tabpanel" aria-labelledby="collections-tab">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="input-group">
+                <input type="text" id="collection-name" class="form-control" placeholder="Nombre de colección">
+                <button id="load-collection-btn" class="btn btn-primary">
+                  <i class="bi bi-search"></i> Cargar
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6 text-end">
+              <button id="upload-binary-btn" class="btn btn-info me-2">
+                <i class="bi bi-file-earmark-arrow-up"></i> Subir archivo
+              </button>
+              <button id="create-document-btn" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nuevo documento
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>Documentos</span>
+              <span id="collection-badge" class="badge bg-primary"></span>
+            </div>
+            <div class="card-body">
+              <div id="documents-container">
+                <p class="text-muted text-center">Selecciona una colección para ver sus documentos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pestaña de Usuarios -->
+        <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+          <div class="row mb-3">
+            <div class="col-md-12 text-end">
+              <button id="create-user-btn" class="btn btn-success">
+                <i class="bi bi-person-plus"></i> Nuevo usuario
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Usuarios</div>
+            <div class="card-body">
+              <div id="users-container">
+                <div class="text-center">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pestaña de Copias de seguridad -->
+        <div class="tab-pane fade" id="backups" role="tabpanel" aria-labelledby="backups-tab">
+          <div class="row mb-3">
+            <div class="col-md-12 text-end">
+              <button id="create-backup-btn" class="btn btn-success">
+                <i class="bi bi-cloud-upload"></i> Nueva copia de seguridad
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">Copias de seguridad</div>
+            <div class="card-body">
+              <div id="backups-container">
+                <div class="text-center">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pestaña de Tiempo real -->
+        <div class="tab-pane fade" id="live" role="tabpanel" aria-labelledby="live-tab">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="input-group">
+                <input type="text" id="subscribe-collection" class="form-control" placeholder="Nombre de colección">
+                <button id="subscribe-btn" class="btn btn-primary">
+                  <i class="bi bi-rss"></i> Suscribirse
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6 text-end">
+              <button id="clear-events-btn" class="btn btn-secondary">
+                <i class="bi bi-trash"></i> Limpiar eventos
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>Eventos en tiempo real</span>
+              <span id="websocket-status" class="badge bg-secondary">Desconectado</span>
+            </div>
+            <div class="card-body">
+              <div id="subscriptions-container" class="mb-3"></div>
+              <div id="events-container" class="border p-3 bg-light" style="height: 300px; overflow-y: auto;">
+                <p class="text-muted text-center">Suscríbete a una colección para ver eventos en tiempo
+                  real</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales -->
+  <!-- Modal para acceso directo a archivos -->
+  <div class="modal fade" id="direct-access-modal" tabindex="-1" aria-labelledby="direct-access-modal-label"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="direct-access-modal-label">Acceso directo a archivo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="direct-access-form">
+            <div class="mb-3">
+              <label for="direct-file-id" class="form-label">ID del archivo</label>
+              <input type="text" class="form-control" id="direct-file-id" placeholder="Ingrese el ID del archivo"
+                required>
+              <div class="invalid-feedback" id="direct-file-id-feedback"></div>
+              <small class="form-text text-muted">Ejemplo: c28384ec-71ad-4ac7-a6d2-e178d153d50d</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" id="download-direct-btn">
+            <i class="bi bi-download"></i> Descargar
+          </button>
+          <button type="button" class="btn btn-info" id="view-direct-btn">
+            <i class="bi bi-eye"></i> Ver
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear/editar documento -->
+  <div class="modal fade" id="document-modal" tabindex="-1" aria-labelledby="document-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="document-modal-label">Nuevo documento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="document-form">
+            <input type="hidden" id="document-id">
+            <div class="mb-3">
+              <label for="document-collection" class="form-label">Colección</label>
+              <input type="text" class="form-control" id="document-collection" required>
+            </div>
+            <div class="mb-3">
+              <label for="document-data" class="form-label">Datos (JSON)</label>
+              <textarea class="form-control code-editor" id="document-data" rows="10" required></textarea>
+              <div class="invalid-feedback" id="document-data-feedback"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-document-btn">
+            <span id="save-document-spinner" class="spinner-border hidden" role="status" aria-hidden="true"></span>
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear usuario -->
+  <div class="modal fade" id="user-modal" tabindex="-1" aria-labelledby="user-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="user-modal-label">Nuevo usuario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="user-form">
+            <input type="hidden" id="user-id">
+            <div class="mb-3">
+              <label for="user-username" class="form-label">Nombre de usuario</label>
+              <input type="text" class="form-control" id="user-username" required>
+            </div>
+            <div class="mb-3">
+              <label for="user-password" class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="user-password" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Roles</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="admin" id="role-admin">
+                <label class="form-check-label" for="role-admin">
+                  Administrador
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="reader" id="role-reader">
+                <label class="form-check-label" for="role-reader">
+                  Lector
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="writer" id="role-writer">
+                <label class="form-check-label" for="role-writer">
+                  Escritor
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-user-btn">
+            <span id="save-user-spinner" class="spinner-border hidden" role="status" aria-hidden="true"></span>
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear clave API -->
+  <div class="modal fade" id="apikey-modal" tabindex="-1" aria-labelledby="apikey-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="apikey-modal-label">Nueva clave API</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="apikey-form">
+            <input type="hidden" id="apikey-user-id">
+            <div class="mb-3">
+              <label for="apikey-name" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="apikey-name" required>
+            </div>
+            <div class="mb-3">
+              <label for="apikey-valid-days" class="form-label">Días de validez</label>
+              <input type="number" class="form-control" id="apikey-valid-days" min="1" value="30" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-apikey-btn">
+            <span id="save-apikey-spinner" class="spinner-border hidden" role="status" aria-hidden="true"></span>
+            Crear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para mostrar clave API creada -->
+  <div class="modal fade" id="apikey-result-modal" tabindex="-1" aria-labelledby="apikey-result-modal-label"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="apikey-result-modal-label">Clave API creada</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> Guarda esta clave API. No podrás verla de nuevo.
+          </div>
+          <div class="mb-3">
+            <label for="apikey-result" class="form-label">Clave API</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="apikey-result" readonly>
+              <button class="btn btn-outline-secondary" type="button" id="copy-apikey-btn">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación -->
+  <div class="modal fade" id="confirm-modal" tabindex="-1" aria-labelledby="confirm-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirm-modal-label">Confirmar acción</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="confirm-modal-body">
+          ¿Estás seguro de que deseas realizar esta acción?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirm-action-btn">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para subir archivo binario -->
+  <div class="modal fade" id="binary-modal" tabindex="-1" aria-labelledby="binary-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="binary-modal-label">Subir archivo binario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="binary-form">
+            <input type="hidden" id="binary-document-id">
+            <div class="mb-3">
+              <label for="binary-collection" class="form-label">Colección</label>
+              <input type="text" class="form-control" id="binary-collection" required>
+              <div class="invalid-feedback" id="binary-collection-feedback"></div>
+            </div>
+            <div class="mb-3">
+              <label for="binary-file" class="form-label">Archivo</label>
+              <input type="file" class="form-control" id="binary-file" required>
+              <div class="invalid-feedback" id="binary-file-feedback"></div>
+            </div>
+            <div class="mb-3">
+              <label for="binary-metadata" class="form-label">Metadatos adicionales (JSON, opcional)</label>
+              <textarea class="form-control code-editor" id="binary-metadata" rows="5" placeholder="{}"></textarea>
+              <div class="invalid-feedback" id="binary-metadata-feedback"></div>
+              <small class="form-text text-muted">Los metadatos se combinarán con la información del archivo.</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Permisos de acceso</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="binary-public-access" checked>
+                <label class="form-check-label" for="binary-public-access">
+                  Acceso público (cualquier usuario puede descargar)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="binary-encrypted" value="">
+                <label class="form-check-label" for="binary-encrypted">
+                  Cifrar contenido (mayor seguridad)
+                </label>
+              </div>
+              <div class="mb-3 mt-2" id="binary-password-container" style="display: none;">
+                <label for="binary-password" class="form-label">Contraseña de cifrado</label>
+                <input type="password" class="form-control" id="binary-password">
+                <div class="invalid-feedback" id="binary-password-feedback"></div>
+                <small class="form-text text-muted">Esta contraseña será necesaria para descargar el archivo.</small>
+              </div>
+              <div class="mb-3 mt-2">
+                <label for="binary-allowed-users" class="form-label">Usuarios con acceso (separados por comas)</label>
+                <input type="text" class="form-control" id="binary-allowed-users" placeholder="usuario1, usuario2">
+                <small class="form-text text-muted">Dejar en blanco para permitir acceso a todos los usuarios
+                  autenticados.</small>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="save-binary-btn">
+            <span id="save-binary-spinner" class="spinner-border spinner-border-sm hidden" role="status"
+              aria-hidden="true"></span>
+            Subir archivo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="binary_utils.js"></script>
+  <script src="dbp2p.js"></script>
+
+
+</body>
+
+</html>

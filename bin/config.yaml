@@ -1,0 +1,47 @@
+general:
+    data_dir: ./data
+    log_level: info
+network:
+    libp2p:
+        listen_addresses:
+            - /ip4/0.0.0.0/tcp/4001
+            - /ip4/0.0.0.0/udp/4001/quic
+        bootstrap_peers:
+            - /ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ
+            - /ip4/104.236.179.241/tcp/4001/p2p/QmSoLPppuBtQSGwKDZT2M73ULpjvfd3aZ6ha4oFGL1KrGM
+    mdns:
+        enabled: true
+        service_name: dbp2p
+        interval: 10
+    dht:
+        enabled: true
+        mode: server
+        bootstrap_interval: 300
+api:
+    enabled: true
+    port: 8080
+    cors:
+        enabled: true
+        allowed_origins:
+            - '*'
+websocket:
+    enabled: true
+    port: 8081
+database:
+    persistence:
+        enabled: true
+        sync_interval: 5
+    backup:
+        auto_backup: true
+        interval: 3600
+        max_backups: 10
+auth:
+    jwt:
+        secret: change_this_to_a_secure_secret_key
+        expiration: 86400
+    default_admin:
+        username: admin
+        password: admin123
+    api_keys:
+        enabled: true
+        max_per_user: 5

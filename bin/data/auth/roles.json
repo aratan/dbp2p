@@ -1,0 +1,39 @@
+[
+  {
+    "name": "admin",
+    "description": "Administrador con acceso completo",
+    "permissions": [
+      {
+        "resource": "*",
+        "actions": [
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "reader",
+    "description": "Usuario con permisos de solo lectura",
+    "permissions": [
+      {
+        "resource": "*",
+        "actions": [
+          "read"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "writer",
+    "description": "Usuario con permisos de lectura y escritura",
+    "permissions": [
+      {
+        "resource": "*",
+        "actions": [
+          "read",
+          "write"
+        ]
+      }
+    ]
+  }
+]

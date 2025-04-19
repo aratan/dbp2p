@@ -1,0 +1,22 @@
+{
+  "id": "56995d6c-c826-4ce7-9cda-9e87bc5f8b26",
+  "collection": "users",
+  "data": {
+    "active": true,
+    "address": {
+      "city": "Valencia",
+      "country": "España"
+    },
+    "age": 35,
+    "created_at": "2025-03-30T00:28:35.8511334+01:00",
+    "email": "ana@gmail.com",
+    "name": "Ana Martínez",
+    "role": "user",
+    "skills": [
+      "HTML",
+      "CSS"
+    ]
+  },
+  "created_at": "2025-04-14T00:28:35.8645089+02:00",
+  "updated_at": "2025-04-14T00:28:35.8645089+02:00"
+}

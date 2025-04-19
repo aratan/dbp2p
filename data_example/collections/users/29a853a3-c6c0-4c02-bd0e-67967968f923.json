@@ -1,0 +1,23 @@
+{
+  "id": "29a853a3-c6c0-4c02-bd0e-67967968f923",
+  "collection": "users",
+  "data": {
+    "active": true,
+    "address": {
+      "city": "Sevilla",
+      "country": "España"
+    },
+    "age": 55,
+    "created_at": "2025-03-14T00:28:35.8511334+01:00",
+    "email": "carlos@example.com",
+    "name": "Carlos Rodríguez",
+    "role": "admin",
+    "skills": [
+      "Ruby",
+      "Python",
+      "Go"
+    ]
+  },
+  "created_at": "2025-04-14T00:28:35.8649543+02:00",
+  "updated_at": "2025-04-14T00:28:35.8649543+02:00"
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1e3a6bb0-4cdc-4765-ac51-572d6a719893",
+    "username": "admin",
+    "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "roles": [
+      "admin"
+    ],
+    "api_keys": [],
+    "active": false,
+    "created_at": "2025-04-12T13:59:41.8536683+02:00",
+    "updated_at": "2025-04-12T13:59:41.8536683+02:00"
+  },
+  {
+    "id": "a6c79aa3-53e3-49a5-a495-8fdbd74c1145",
+    "username": "vic",
+    "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "roles": [
+      "reader"
+    ],
+    "api_keys": [],
+    "active": false,
+    "created_at": "2025-04-14T13:25:00+02:00",
+    "updated_at": "2025-04-14T13:25:00+02:00"
+  }
+]

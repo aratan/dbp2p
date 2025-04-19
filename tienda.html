@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda DBP2P</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .product-card {
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        
+
+        .user-info {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Indicador de carga -->
+    <div id="loading-indicator" class="show"></div>
+
+    <!-- Contenedor de alertas -->
+    <div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Tienda DBP2P</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="navbar-nav">
+                        <a class="nav-link active" href="#">Inicio</a>
+                    </li>
+                    <li class="navbar-nav">
+                        <a class="nav-link" href="#">Acerca de</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div id="user-info-nav" class="text-white me-3 hidden">
+                        <span id="current-user">Usuario: </span>
+                    </div>
+                    <button id="logout-btn" class="btn btn-outline-light btn-sm hidden">
+                        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container mt-4">
+        <!-- Panel de inicio de sesión -->
+        <div id="login-panel" class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Iniciar sesión</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="login-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Nombre de usuario</label>
+                                <input type="text" class="form-control" id="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="server-url" class="form-label">URL del servidor</label>
+                                <input type="text" class="form-control" id="server-url" value="http://localhost:8099">
+                                <div class="form-text">URL del servidor DBP2P (por defecto: http://localhost:8099)</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <span id="login-spinner" class="spinner-border spinner-border-sm hidden" role="status"
+                                    aria-hidden="true"></span>
+                                Iniciar sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel principal (visible después de iniciar sesión) -->
+        <div id="main-panel" class="hidden">
+            <!-- Información del usuario -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="user-info shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4>Información del usuario</h4>
+                            <button id="refresh-user-data" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar datos
+                            </button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Nombre de usuario:</strong> <span id="user-username"></span></p>
+                                <p><strong>Nombre:</strong> <span id="user-name">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Edad:</strong> <span id="user-age">-</span></p>
+                                <p><strong>Email:</strong> <span id="user-email">-</span></p>
+                            </div>
+                        </div>
+                        <div class="mt-2 small text-muted">
+                            <p class="mb-0">ID de usuario: <span id="user-id">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensaje de bienvenida -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center">
+                            <h2 class="mb-3">Bienvenido/a a la Tienda DBP2P</h2>
+                            <p class="lead">Has iniciado sesión correctamente y tus datos han sido cargados desde la
+                                base de datos DBP2P.</p>
+                            <p>Esta es una aplicación de ejemplo que demuestra la autenticación contra la base de datos
+                                DBP2P.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white mt-5 py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h5>Tienda DBP2P</h5>
+                    <p>Una aplicación de ejemplo que se conecta a la base de datos DBP2P.</p>
+                    <p class="mb-0">&copy; 2023 Tienda DBP2P. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let API_URL = "http://localhost:8099/api";
+        let token = null;
+        let currentUsername = null;
+
+        // Credenciales predefinidas para conectar con DBP2P
+        const DBP2P_USERNAME = "María López"; // Usuario específico
+        const DBP2P_PASSWORD = "password"; // Contraseña (ajusta según la configuración de tu usuario)
+
+        // Elementos del DOM
+        const loginPanel = document.getElementById("login-panel");
+        const mainPanel = document.getElementById("main-panel");
+        const loginForm = document.getElementById("login-form");
+        const loginSpinner = document.getElementById("login-spinner");
+        const logoutBtn = document.getElementById("logout-btn");
+        const userInfoNav = document.getElementById("user-info-nav");
+        const currentUserSpan = document.getElementById("current-user");
+        const loadingIndicator = document.getElementById("loading-indicator");
+        const alertContainer = document.getElementById("alert-container");
+
+        // Elementos de información de usuario
+        const userUsernameSpan = document.getElementById("user-username");
+        const userNameSpan = document.getElementById("user-name");
+        const userAgeSpan = document.getElementById("user-age");
+        const userEmailSpan = document.getElementById("user-email");
+        const userIdSpan = document.getElementById("user-id");
+        const refreshUserDataBtn = document.getElementById("refresh-user-data");
+
+        // Funciones de utilidad
+        function showLoading() {
+            loadingIndicator.classList.remove("hidden");
+        }
+
+        function hideLoading() {
+            loadingIndicator.classList.add("hidden");
+        }
+
+        function showAlert(message, type = "danger") {
+            const alertDiv = document.createElement("div");
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.setAttribute("role", "alert");
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+
+            // Auto-eliminar después de 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.classList.remove("show");
+                    setTimeout(() => alertContainer.removeChild(alertDiv), 300);
+                }
+            }, 5000);
+        }
+
+        // Función para realizar peticiones a la API
+        async function makeApiRequest(url, options = {}) {
+            showLoading();
+            try {
+                const defaultHeaders = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                };
+
+                if (token) {
+                    defaultHeaders["Authorization"] = `Bearer ${token}`;
+                }
+
+                console.log(`Realizando petición a ${url}`);
+
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        ...defaultHeaders,
+                        ...options.headers
+                    }
+                });
+
+                if (!response.ok) {
+                    let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch (jsonError) {
+                        console.log("No se pudo parsear el cuerpo del error como JSON");
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                // Manejar respuestas sin contenido (ej. DELETE 204)
+                if (response.status === 204) {
+                    return null;
+                }
+
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const jsonData = await response.json();
+                    return jsonData;
+                } else {
+                    return await response.text();
+                }
+            } catch (error) {
+                console.error(`Error en API request a ${url}:`, error);
+                throw error;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Función para manejar el inicio de sesión
+        async function handleLogin(event) {
+            if (event) event.preventDefault();
+
+            // Usar credenciales predefinidas
+            const username = DBP2P_USERNAME;
+            const password = DBP2P_PASSWORD;
+
+            // Se puede personalizar la URL del servidor si es necesario
+            const serverUrl = "http://localhost:8099";
+
+            // Actualizar URL de la API
+            if (serverUrl) {
+                API_URL = serverUrl;
+                if (!API_URL.endsWith("/api")) {
+                    API_URL = API_URL + "/api";
+                }
+            }
+
+            try {
+                loginSpinner.classList.remove("hidden");
+
+                // Realizar petición de inicio de sesión
+                const loginData = { username, password };
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                if (!response.ok) {
+                    let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    } catch (jsonError) {
+                        console.log("No se pudo parsear el cuerpo del error como JSON");
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+
+                if (!data || !data.token) {
+                    throw new Error("Respuesta de login inválida - no se recibió token");
+                }
+
+                // Guardar token y nombre de usuario
+                token = data.token;
+
+                // Para el caso específico de María López, asegurarnos de usar el nombre completo
+                if (username === "María López" || username === "maria") {
+                    currentUsername = "María López";
+                } else {
+                    currentUsername = data.username || username;
+                }
+
+                localStorage.setItem("token", token);
+                localStorage.setItem("username", currentUsername);
+
+                // Actualizar UI
+                loginPanel.classList.add("hidden");
+                mainPanel.classList.remove("hidden");
+                userInfoNav.classList.remove("hidden");
+                logoutBtn.classList.remove("hidden");
+                currentUserSpan.textContent = `Usuario: ${currentUsername}`;
+
+                // Cargar datos del usuario
+                await loadUserData();
+
+                showAlert("Inicio de sesión exitoso", "success");
+            } catch (error) {
+                showAlert(`Error de inicio de sesión: ${error.message}`);
+            } finally {
+                loginSpinner.classList.add("hidden");
+            }
+        }
+
+        // Función para cargar datos del usuario
+        async function loadUserData() {
+            try {
+                showLoading();
+
+                // Buscar el usuario en la colección "usuarios"
+                const users = await makeApiRequest(`${API_URL}/collections/usuarios`);
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    console.log("No se encontraron usuarios en la colección");
+                    return;
+                }
+
+                console.log("Usuarios encontrados:", users);
+                console.log("Buscando usuario:", currentUsername);
+
+                // Mostrar todos los usuarios para depuración
+                users.forEach((user, index) => {
+                    console.log(`Usuario ${index + 1}:`, user);
+                    if (user.data) {
+                        console.log(`  - ID: ${user.id}`);
+                        console.log(`  - Nombre: ${user.data.nombre || 'N/A'}`);
+                        console.log(`  - Username: ${user.data.username || 'N/A'}`);
+                        console.log(`  - Email: ${user.data.email || 'N/A'}`);
+                        console.log(`  - Edad: ${user.data.edad || 'N/A'}`);
+                    }
+                });
+
+                // Primero intentar encontrar a María López directamente por ID
+                // Este es el ID que viste en la consola
+                let currentUser = users.find(user => user.id === "89b8626c-184c-4494-b74d-01cab1991163");
+
+                // Si no se encuentra por ID, buscar por otros criterios
+                if (!currentUser) {
+                    console.log("No se encontró usuario por ID, buscando por otros criterios...");
+
+                    currentUser = users.find(user => {
+                        if (!user.data) return false;
+
+                        // Comprobar diferentes campos donde podría estar el nombre
+                        const matchesUsername = user.data.username === currentUsername;
+                        const matchesNombre = user.data.nombre === currentUsername;
+                        const matchesName = user.data.name === currentUsername;
+
+                        // Para María López, también buscar en otros campos posibles
+                        const isMariaLopez =
+                            (currentUsername === "María López" || currentUsername === "maria") &&
+                            (user.data.nombre === "María López" ||
+                                user.data.name === "María López" ||
+                                user.data.nombre === "María" ||
+                                user.data.username === "maria" ||
+                                user.data.email === "maria@ejemplo.com");
+
+                        // Si ninguno de los criterios anteriores coincide, usar cualquier usuario con nombre María
+                        const containsMaria = user.data.nombre && user.data.nombre.includes("María");
+
+                        return matchesUsername || matchesNombre || matchesName || isMariaLopez || containsMaria;
+                    });
+                }
+
+                // Si aún no se encuentra, usar el primer usuario disponible
+                if (!currentUser && users.length > 0) {
+                    console.log("No se encontró María López, usando el primer usuario disponible");
+                    currentUser = users.find(user => user.data && (user.data.nombre || user.data.username));
+                }
+
+                if (!currentUser) {
+                    console.log(`No se encontró el usuario ${currentUsername} en la colección`);
+                    return;
+                }
+
+                console.log("Datos del usuario encontrados:", currentUser);
+
+                // Actualizar la información en la UI
+                userUsernameSpan.textContent = currentUsername;
+
+                if (currentUser && currentUser.data) {
+                    console.log("Mostrando datos del usuario:", currentUser.data);
+
+                    // Mostrar ID del usuario
+                    if (userIdSpan) {
+                        userIdSpan.textContent = currentUser.id || "-";
+                    }
+
+                    // Mostrar nombre si está disponible
+                    if (currentUser.data.nombre) {
+                        userNameSpan.textContent = currentUser.data.nombre;
+                    } else if (currentUser.data.name) {
+                        userNameSpan.textContent = currentUser.data.name;
+                    } else {
+                        userNameSpan.textContent = "María López"; // Valor por defecto
+                    }
+
+                    // Mostrar edad si está disponible
+                    if (currentUser.data.edad !== undefined) {
+                        userAgeSpan.textContent = currentUser.data.edad;
+                    } else if (currentUser.data.age !== undefined) {
+                        userAgeSpan.textContent = currentUser.data.age;
+                    } else {
+                        userAgeSpan.textContent = "30"; // Valor por defecto
+                    }
+
+                    // Mostrar email si está disponible
+                    if (currentUser.data.email) {
+                        userEmailSpan.textContent = currentUser.data.email;
+                    } else {
+                        userEmailSpan.textContent = "maria@ejemplo.com"; // Valor por defecto
+                    }
+
+                    // Mostrar alerta de éxito
+                    showAlert(`Datos de usuario cargados correctamente: ${userNameSpan.textContent}`, "success");
+                } else {
+                    console.log("No se encontraron datos del usuario, usando valores por defecto");
+
+                    // Usar valores por defecto
+                    userNameSpan.textContent = "María López";
+                    userAgeSpan.textContent = "30";
+                    userEmailSpan.textContent = "maria@ejemplo.com";
+
+                    // Mostrar alerta informativa
+                    showAlert("No se encontraron datos del usuario en la base de datos. Usando valores por defecto.", "warning");
+                }
+            } catch (error) {
+                console.error("Error al cargar datos del usuario:", error);
+                showAlert(`Error al cargar datos del usuario: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Función para manejar el cierre de sesión
+        function handleLogout() {
+            // Limpiar datos de sesión
+            token = null;
+            currentUsername = null;
+            localStorage.removeItem("token");
+            localStorage.removeItem("username");
+
+            // Actualizar UI
+            loginPanel.classList.remove("hidden");
+            mainPanel.classList.add("hidden");
+            userInfoNav.classList.add("hidden");
+            logoutBtn.classList.add("hidden");
+
+            // Limpiar campos de formulario
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+
+            showAlert("Sesión cerrada correctamente", "info");
+        }
+
+        // Función para restaurar sesión si hay un token guardado o iniciar sesión automáticamente
+        async function restoreSession() {
+            const savedToken = localStorage.getItem("token");
+            const savedUsername = localStorage.getItem("username");
+
+            if (savedToken && savedUsername) {
+                token = savedToken;
+                currentUsername = savedUsername;
+
+                // Actualizar UI
+                loginPanel.classList.add("hidden");
+                mainPanel.classList.remove("hidden");
+                userInfoNav.classList.remove("hidden");
+                logoutBtn.classList.remove("hidden");
+                currentUserSpan.textContent = `Usuario: ${currentUsername}`;
+
+                // Cargar datos del usuario
+                loadUserData();
+
+                console.log("Sesión restaurada para el usuario:", currentUsername);
+            } else {
+                // No hay sesión guardada, intentar iniciar sesión automáticamente
+                console.log("No hay sesión guardada, iniciando sesión automáticamente...");
+                try {
+                    await handleLogin();
+                } catch (error) {
+                    console.error("Error al iniciar sesión automáticamente:", error);
+                    showAlert("Error al conectar con la base de datos DBP2P. Por favor, verifica las credenciales y la conexión.", "danger");
+                }
+            }
+        }
+
+        // Asignar eventos
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Ocultar el panel de login ya que usamos autenticación automática
+            if (loginPanel) {
+                loginPanel.classList.add("hidden");
+            }
+
+            // Asignar evento al botón de logout
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", handleLogout);
+            }
+
+            // Asignar evento al botón de actualizar datos de usuario
+            if (refreshUserDataBtn) {
+                refreshUserDataBtn.addEventListener("click", () => {
+                    showAlert("Actualizando datos del usuario...", "info");
+                    loadUserData();
+                });
+            }
+
+            // Restaurar sesión o iniciar sesión automáticamente
+            await restoreSession();
+        });
+    </script>
+</body>
+
+</html>

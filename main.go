@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/aratan/dbp2p/pkg/api"
-	"github.com/aratan/dbp2p/pkg/auth"
 	"github.com/aratan/dbp2p/pkg/config"
 	"github.com/aratan/dbp2p/pkg/db"
 	"github.com/aratan/dbp2p/pkg/p2p"
@@ -453,8 +452,15 @@ func runCLI(database *db.Database, _ *db.DBSync) {
 }
 
 func waitForSignal() {
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	<-sigCh
 	log.Println("Señal recibida, cerrando...")
+}
+
+type DummyAuthManager struct{}
+
+func NewAuthManager(dataDir string) (*DummyAuthManager, error) {
+	return &DummyAuthManager{}, nil
 }
